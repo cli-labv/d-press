@@ -794,3 +794,55 @@ pub fn dpress_banner() -> BannerDefinition {
         )),
     }
 }
+
+
+#[derive(Debug, Clone)]
+pub struct EnhancedBanner {
+    pub file_config: crate::cli::banner_config::BannerFileConfig,
+}
+
+impl EnhancedBanner {
+    pub fn new() -> Self {
+        Self {
+            file_config: crate::cli::banner_config::load_banner_config(),
+        }
+    }
+
+    pub fn print_enhanced(&self) {
+        if !self.file_config.enabled {
+            return;
+        }
+        let term = Term::stderr();
+        let colors_on = colors_enabled() && !env_bool("NO_COLOR", false);
+        
+        // Print tagline in box if enabled
+        if self.file_config.show_tagline && !self.file_config.tagline.is_empty() {
+            let max_len = self.file_config.tagline.iter().map(|s| measure_text_width(s)).max().unwrap_or(40);
+            let width = if max_len + 4 > MAX_BANNER_WIDTH { MAX_BANNER_WIDTH } else { max_len + 4 };
+            if colors_on {
+                eprintln!("\x1b[95m╭{}╮\x1b[0m", "─".repeat(width - 2));
+                for line in &self.file_config.tagline {
+                    eprintln!("\x1b[95m│\x1b[0m {:<width$} \x1b[95m│\x1b[0m", line, width = width - 4);
+                }
+                eprintln!("\x1b[95m╰{}╯\x1b[0m", "─".repeat(width - 2));
+            } else {
+                eprintln!("╭{}╮", "─".repeat(width - 2));
+                for line in &self.file_config.tagline {
+                    eprintln!("│ {:<width$} │", line, width = width - 4);
+                }
+                eprintln!("╰{}╯", "─".repeat(width - 2));
+            }
+            let _ = term.write_line("");
+        }
+        
+        if !self.file_config.footer.is_empty() {
+            eprintln!("{}", if colors_on { "\x1b[2m".to_string() + &self.file_config.footer + "\x1b[0m" } else { self.file_config.footer.clone() });
+        }
+        
+        if self.file_config.show_separator {
+            let sep = "─".repeat(std::cmp::min(70, MAX_BANNER_WIDTH));
+            eprintln!("{}", if colors_on { "\x1b[2m".to_string() + &sep + "\x1b[0m" } else { sep });
+        }
+        let _ = term.write_line("");
+    }
+}

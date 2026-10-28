@@ -1,0 +1,25 @@
+{
+  "enabled": true,
+  "theme": "neon",
+  "style": "rounded",
+  "show_tagline": true,
+  "show_version": true,
+  "show_separator": true,
+  "animation": {
+    "enabled": true,
+    "typing": true,
+    "char_delay_ms": 6,
+    "line_delay_ms": 16
+  },
+  "colors": {
+    "logo": ["cyan_bright", "magenta_bright", "cyan", "blue_bright", "white"],
+    "tagline": "cyan_bright",
+    "border": "magenta_bright",
+    "footer": "dim"
+  },
+  "tagline": [
+    "Descompresión masiva · Rápido · Paralelo · Seguro",
+    "ZIP · RAR4/RAR5 · 7Z · TAR · GZ · BZ2 · XZ"
+  ],
+  "footer": "v0.1.0 │ Portable CLI"
+}

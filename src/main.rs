@@ -7,13 +7,15 @@ use std::fs;
 use std::path::Path;
 use crate::core::planner::{Plan, OutputMode};
 use crate::core::extractor::run;
-use crate::cli::{menus, diagnostics, args::Args, history_view, banner};
+use crate::cli::{menus, diagnostics, args::Args, history_view, banner, adaptive_menu};
 use clap::Parser;
 
 fn main() {
     let args = Args::parse();
     let banner_config = crate::cli::banner::BannerConfig::from_args(&args);
     banner::print_banner(&banner_config);
+    let enhanced = crate::cli::banner::EnhancedBanner::new();
+    enhanced.print_enhanced();
     if args.has_inputs() {
         // Modo no interactivo
         let input = args.input.unwrap();
@@ -41,9 +43,8 @@ fn main() {
     }
 
     // Modo interactivo
-    println!("d-press");
     loop {
-        let choice = menus::main_menu();
+        let choice = adaptive_menu::main_menu_adaptive();
         match choice {
             "Procesar carpeta ./input" => {
                 let (input, output) = menus::ask_input_output();

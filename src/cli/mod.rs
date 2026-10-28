@@ -3,3 +3,5 @@ pub mod diagnostics;
 pub mod args;
 pub mod history_view;
 pub mod banner;
+pub mod banner_config;
+pub mod adaptive_menu;
