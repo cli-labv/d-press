@@ -13,6 +13,8 @@ pub enum Status {
 pub struct FileState {
     pub path: String,
     pub status: Status,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub compatibility: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

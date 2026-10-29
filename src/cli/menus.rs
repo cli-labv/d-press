@@ -1,4 +1,4 @@
-use dialoguer::{theme::ColorfulTheme, Input, Select};
+use dialoguer::{theme::ColorfulTheme, Confirm, Input, Select};
 use console::{style, Color, Style};
 use std::path::PathBuf;
 
@@ -20,15 +20,15 @@ fn menu_theme() -> ColorfulTheme {
 
 pub fn main_menu() -> &'static str {
     let items = &[
-        "Procesar carpeta ./input",
-        "Seleccionar carpeta externa",
-        "Ver historial",
-        "Reanudar corrida pendiente",
+        "Procesar ./input",
+        "Carpeta externa",
+        "Historial",
+        "Reanudar",
         "Salir",
     ];
     let theme = menu_theme();
     let selection = Select::with_theme(&theme)
-        .with_prompt("d-press · menú principal")
+        .with_prompt("d-press")
         .items(items)
         .default(0)
         .interact()
@@ -39,12 +39,12 @@ pub fn main_menu() -> &'static str {
 pub fn ask_input_output() -> (PathBuf, PathBuf) {
     let theme = menu_theme();
     let input: String = Input::with_theme(&theme)
-        .with_prompt("Carpeta de entrada")
+        .with_prompt("Entrada")
         .default("./input".into())
         .interact_text()
         .unwrap();
     let output: String = Input::with_theme(&theme)
-        .with_prompt("Carpeta de salida")
+        .with_prompt("Salida")
         .default("./output".into())
         .interact_text()
         .unwrap();
@@ -52,13 +52,21 @@ pub fn ask_input_output() -> (PathBuf, PathBuf) {
 }
 
 pub fn ask_mode() -> bool {
-    let items = &["Modo A - Una carpeta de salida", "Modo B - Preservar estructura"];
+    let items = &["A · Una carpeta", "B · Preservar estructura"];
     let theme = menu_theme();
     let sel = Select::with_theme(&theme)
-        .with_prompt("Modo de salida")
+        .with_prompt("Modo")
         .items(items)
         .default(0)
         .interact()
         .unwrap();
     sel == 0
+}
+
+pub fn confirm_extract() -> bool {
+    Confirm::with_theme(&menu_theme())
+        .with_prompt("Enter para extraer")
+        .default(true)
+        .interact()
+        .unwrap_or(false)
 }

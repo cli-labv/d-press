@@ -50,7 +50,8 @@ binario cacheado en `bin/`.
 
 Si se pasan `--input` y `--output`, se ejecuta el modo no interactivo; en caso
 contrario se abre el menú interactivo (procesar `./input`, ver historial,
-reanudar, salir).
+reanudar, salir). La confirmación final es **sí** por defecto: pulsa Enter para
+iniciar la extracción.
 
 ## Modos de salida
 
@@ -66,13 +67,43 @@ output/ manga/tomo1/...        # preserve
 output/ tomo1/...              # flat
 ```
 
+## Compatibilidad especial
+
+El comportamiento predeterminado no cambia: los nombres se usan tal cual salvo
+que no sean portables. En ese caso se aplica un ajuste **solo a ese archivo** y
+se avisa de forma explícita antes y durante la extracción.
+
+Se corrige:
+
+- Puntos (`.`) o espacios al final de carpetas y entradas, que Windows,
+  FAT/exFAT y muchos recursos SMB eliminan o rechazan.
+- Caracteres no válidos (`< > : " | ? *` y controles).
+- Nombres reservados de Windows (`CON`, `NUL`, `COM1`, `LPT1`, …).
+
+Ejemplo: una carpeta generada como `Boku no Kaa-chan｜Mi Mamá es...` pasa a
+`Boku no Kaa-chan｜Mi Mamá es` y la app muestra:
+
+```text
+╭─ Compatibilidad especial ──────────────────────────────╮
+│ Boku no Kaa-chan｜Mi Mamá es....zip                    │
+│   carpeta «Boku no Kaa-chan｜Mi Mamá es» · punto final │
+│ Solo estos archivos · no es el modo normal             │
+╰────────────────────────────────────────────────────────╯
+```
+
+El diagnóstico previo indica cuántos archivos requieren este modo y cuáles son.
+Si el motor nativo de ZIP/RAR falla, la app intenta un motor externo disponible
+(`7zz`, `7z`, `7za` o `unzip` para ZIP) y también lo registra como
+compatibilidad especial. Los ajustes quedan guardados en el estado de la corrida
+(campo `compatibility`).
+
 ## Estructura del proyecto
 
 ```text
 input/                 archivos comprimidos de origen
-output/                extracciones
-output/state/          estado de cada corrida (<hash>.json)
-output/logs/           historial.jsonl
+output/s+extracciones limpias
+registros/state/          estado de cada corrida (<hash>.json)
+registros/logs/           historial.jsonl
 bin/                   binarios estáticos (x86_64 / aarch64 musl)
 src/cli/               argumentos, menús, banner, diagnóstico, historial
 src/core/              escaneo, planificación y orquestación de extracción
@@ -96,11 +127,11 @@ diagnóstico previo y se omiten durante la extracción.
 ## Estado y reanudación
 
 Cada corrida se identifica con un hash de las rutas de entrada y salida y se
-guarda en `output/state/<hash>.json`. Al repetir la misma corrida, los archivos
+guarda en `registros/state/<hash>.json`. Al repetir la misma corrida, los archivos
 marcados como `Extracted` se omiten. Los estados posibles son `Pending`,
 `Extracted`, `Error` y `Skipped`.
 
-El historial se añade una sola vez por corrida en `output/logs/historial.jsonl`
+El historial se añade una sola vez por corrida en `registros/logs/historial.jsonl`
 con el formato `{id, input, output, ts}`.
 
 ## Requisitos

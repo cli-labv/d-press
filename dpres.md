@@ -96,8 +96,8 @@ La app también debe funcionar en modo no interactivo por flags (`clap`), para s
 
 ## 5. Persistencia (JSON simple, sin base de datos)
 
-- `state/<id-de-corrida>.json`: estado de cada archivo de la corrida (`pendiente`/`extraído`/`error`/`omitido`), actualizado después de cada archivo procesado, para poder **reanudar** una operación interrumpida. Al arrancar, si hay una corrida incompleta, se ofrece reanudarla como primera opción del menú.
-- `logs/historial.jsonl`: una línea por corrida completa (fecha, carpeta de entrada, modo usado, cantidad de archivos, resultado), consultable desde "Ver historial".
+- `registros/state/<id-de-corrida>.json`: estado de cada archivo de la corrida (`pendiente`/`extraído`/`error`/`omitido`), actualizado después de cada archivo procesado, para poder **reanudar** una operación interrumpida. Al arrancar, si hay una corrida incompleta, se ofrece reanudarla como primera opción del menú.
+- `registros/logs/historial.jsonl`: una línea por corrida completa (fecha, carpeta de entrada, modo usado, cantidad de archivos, resultado), consultable desde "Ver historial".
 
 ---
 

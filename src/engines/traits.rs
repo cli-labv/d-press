@@ -10,7 +10,18 @@ pub struct ArchiveInfo {
     pub total_unpacked: u64,
 }
 
+#[derive(Debug, Default, Clone)]
+pub struct ExtractOutcome {
+    pub notices: Vec<String>,
+}
+
+impl ExtractOutcome {
+    pub fn special(notices: Vec<String>) -> Self {
+        Self { notices }
+    }
+}
+
 pub trait Engine {
     fn probe(&self, path: &Path) -> Result<ArchiveInfo, String>;
-    fn extract(&self, path: &Path, dest: &Path) -> Result<(), String>;
+    fn extract(&self, path: &Path, dest: &Path) -> Result<ExtractOutcome, String>;
 }

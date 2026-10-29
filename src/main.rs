@@ -1,21 +1,16 @@
-mod engines;
-mod core;
-mod state;
 mod cli;
+mod core;
+mod engines;
+mod state;
 
-use std::fs;
-use std::path::Path;
-use crate::core::planner::{Plan, OutputMode};
+use crate::cli::{adaptive_menu, args::Args, diagnostics, history_view, menus};
 use crate::core::extractor::run;
-use crate::cli::{menus, diagnostics, args::Args, history_view, banner, adaptive_menu};
+use crate::core::planner::{OutputMode, Plan};
 use clap::Parser;
 
 fn main() {
     let args = Args::parse();
-    let banner_config = crate::cli::banner::BannerConfig::from_args(&args);
-    banner::print_banner(&banner_config);
-    let enhanced = crate::cli::banner::EnhancedBanner::new();
-    enhanced.print_enhanced();
+    crate::cli::banner_big::print_big_banner();
     if args.has_inputs() {
         // Modo no interactivo
         let input = args.input.unwrap();
@@ -26,18 +21,11 @@ fn main() {
         };
         let plan = Plan::new(input, output, mode);
         diagnostics::print_diagnostics(&plan);
-        if !args.yes {
-            let ok = dialoguer::Confirm::new()
-                .with_prompt("¿Iniciar extracción?")
-                .default(true)
-                .interact()
-                .unwrap();
-            if !ok { return; }
+        if !args.yes && !menus::confirm_extract() {
+            return;
         }
         if let Err(e) = run(&plan) {
             eprintln!("Error: {}", e);
-        } else {
-            println!("Proceso finalizado.");
         }
         return;
     }
@@ -46,42 +34,40 @@ fn main() {
     loop {
         let choice = adaptive_menu::main_menu_adaptive();
         match choice {
-            "Procesar carpeta ./input" => {
+            "Procesar ./input" => {
                 let (input, output) = menus::ask_input_output();
                 let flat = menus::ask_mode();
-                let mode = if flat { OutputMode::Flat } else { OutputMode::Preserve };
+                let mode = if flat {
+                    OutputMode::Flat
+                } else {
+                    OutputMode::Preserve
+                };
                 let plan = Plan::new(input, output, mode);
                 diagnostics::print_diagnostics(&plan);
-                let confirm = dialoguer::Confirm::new()
-                    .with_prompt("¿Iniciar extracción?")
-                    .default(true)
-                    .interact()
-                    .unwrap();
-                if confirm {
+                if menus::confirm_extract() {
                     if let Err(e) = run(&plan) {
                         eprintln!("Error: {}", e);
-                    } else {
-                        println!("Proceso finalizado.");
                     }
                 }
             }
-            "Seleccionar carpeta externa" => {
+            "Carpeta externa" => {
                 println!("Función pendiente");
             }
-            "Ver historial" => {
-                let log_path = std::path::Path::new("logs/historial.jsonl");
+            "Historial" => {
+                let log_path = std::path::Path::new("registros/historial.jsonl");
                 history_view::show_history(log_path);
             }
-            "Reanudar corrida pendiente" => {
+            "Reanudar" => {
                 let (input, output) = menus::ask_input_output();
                 let flat = menus::ask_mode();
-                let mode = if flat { OutputMode::Flat } else { OutputMode::Preserve };
+                let mode = if flat {
+                    OutputMode::Flat
+                } else {
+                    OutputMode::Preserve
+                };
                 let plan = Plan::new(input, output, mode);
-                println!("Reanudando...");
                 if let Err(e) = run(&plan) {
                     eprintln!("Error: {}", e);
-                } else {
-                    println!("Reanudación finalizada.");
                 }
             }
             "Salir" => break,

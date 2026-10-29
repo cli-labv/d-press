@@ -5,3 +5,5 @@ pub mod history_view;
 pub mod banner;
 pub mod banner_config;
 pub mod adaptive_menu;
+pub mod banner_big;
+pub mod ui;

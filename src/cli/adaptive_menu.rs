@@ -19,7 +19,7 @@ fn menu_theme() -> ColorfulTheme {
 }
 
 fn has_pending() -> bool {
-    let state_dir = Path::new("output/state");
+    let state_dir = Path::new("registros/state");
     if !state_dir.exists() { return false; }
     if let Ok(entries) = std::fs::read_dir(state_dir) {
         for e in entries.flatten() {
@@ -34,19 +34,15 @@ fn has_pending() -> bool {
 }
 
 pub fn main_menu_adaptive() -> &'static str {
-    let mut items: Vec<&'static str> = vec![
-        "Procesar carpeta ./input",
-        "Seleccionar carpeta externa",
-        "Ver historial",
-    ];
+    let mut items: Vec<&'static str> = vec!["Procesar ./input", "Carpeta externa", "Historial"];
     if has_pending() {
-        items.push("Reanudar corrida pendiente");
+        items.push("Reanudar");
     }
     items.push("Salir");
-    
+
     let theme = menu_theme();
     let selection = Select::with_theme(&theme)
-        .with_prompt("d-press · menú adaptativo")
+        .with_prompt("d-press")
         .items(&items)
         .default(0)
         .interact()
