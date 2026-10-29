@@ -5,6 +5,7 @@ use std::process::Command;
 pub enum ExternalTool {
     SevenZip(&'static str),
     Unzip,
+    Tar,
 }
 
 impl ExternalTool {
@@ -12,6 +13,7 @@ impl ExternalTool {
         match self {
             ExternalTool::SevenZip(cmd) => cmd,
             ExternalTool::Unzip => "unzip",
+            ExternalTool::Tar => "tar",
         }
     }
 }
@@ -37,6 +39,18 @@ pub fn for_rar() -> Option<ExternalTool> {
     None
 }
 
+pub fn for_generic() -> Option<ExternalTool> {
+    for cmd in ["7zz", "7z", "7za"] {
+        if available(cmd) {
+            return Some(ExternalTool::SevenZip(cmd));
+        }
+    }
+    if available("tar") {
+        return Some(ExternalTool::Tar);
+    }
+    None
+}
+
 pub fn extract(tool: ExternalTool, archive: &Path, dest: &Path) -> Result<(), String> {
     let output = match tool {
         ExternalTool::SevenZip(cmd) => Command::new(cmd)
@@ -51,6 +65,12 @@ pub fn extract(tool: ExternalTool, archive: &Path, dest: &Path) -> Result<(), St
             .arg("-qq")
             .arg(archive)
             .arg("-d")
+            .arg(dest)
+            .output(),
+        ExternalTool::Tar => Command::new("tar")
+            .arg("-xf")
+            .arg(archive)
+            .arg("-C")
             .arg(dest)
             .output(),
     }
@@ -83,4 +103,29 @@ fn available(cmd: &str) -> bool {
         .status()
         .map(|status| status.success() || status.code().is_some())
         .unwrap_or(false)
+}
+
+pub struct ExternalEngine {
+    pub tool: ExternalTool,
+}
+
+impl ExternalEngine {
+    pub fn new(tool: ExternalTool) -> Self {
+        Self { tool }
+    }
+}
+
+impl crate::engines::traits::Engine for ExternalEngine {
+    fn probe(&self, _path: &std::path::Path) -> Result<crate::engines::traits::ArchiveInfo, String> {
+        Ok(crate::engines::traits::ArchiveInfo {
+            format: "external",
+            encrypted: false,
+            multi_volume: false,
+            solid: false,
+            total_unpacked: 0,
+        })
+    }
+    fn extract(&self, path: &std::path::Path, dest: &std::path::Path) -> Result<crate::engines::traits::ExtractOutcome, String> {
+        crate::engines::external::extract(self.tool, path, dest).map(|_| crate::engines::traits::ExtractOutcome::default())
+    }
 }

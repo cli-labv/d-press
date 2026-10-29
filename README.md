@@ -129,8 +129,11 @@ Historial: `registros/logs/historial.jsonl`
 | --- | --- | --- |
 | ZIP | ✅ | ✅ |
 | RAR 1.5–4 / 5 | ✅ | ✅ |
-| 7z | ✅ | ⏳ |
-| TAR | ✅ | ⏳ |
+| 7z | ✅ | ✅ |
+| TAR / TAR.* | ✅ | ✅ |
+| GZIP | ✅ | ✅ |
+| BZIP2 | ✅ | ✅ |
+| XZ | ✅ | ✅ |
 
 ---
 

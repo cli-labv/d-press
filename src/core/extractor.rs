@@ -104,7 +104,14 @@ pub fn run(plan: &Plan) -> Result<(), String> {
         let engine: Box<dyn Engine> = match family {
             ArchiveFamily::Rar => Box::new(RarEngine),
             ArchiveFamily::Zip => Box::new(ZipEngine),
-            _ => continue,
+            _ => {
+                if let Some(tool) = crate::engines::external::for_generic() {
+                    Box::new(crate::engines::external::ExternalEngine::new(tool))
+                } else {
+                    // No external tool available, skip
+                    continue;
+                }
+            }
         };
         let (dest, mut notices) = target_dir(plan, &path)?;
         let state_entry = match engine.extract(&path, &dest) {
