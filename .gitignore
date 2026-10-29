@@ -1,9 +1,9 @@
 # Carpetas de trabajo - excluidas del control de versiones
 input/
 output/
-
-# Subcarpetas temporales opcionales
-*.tmp/
+registros/
+logs/
 temp/
+*.tmp/
 
 /target
