@@ -67,15 +67,7 @@ Se corrige:
 - Caracteres inválidos `< > : " | ? *`
 - Nombres reservados Windows `CON`, `NUL`, `COM1`…
 
-Ejemplo:
-
-```text
-╭─ Compatibilidad especial ──────────────────────────────╮
-│ Boku no Kaa-chan｜Mi Mamá es....zip                    │
-│   carpeta «Boku no Kaa-chan｜Mi Mamá es» · punto final │
-│ Solo estos archivos · no es el modo normal             │
-╰────────────────────────────────────────────────────────╯
-```
+El aviso se resume en la fila **Especiales** del diagnóstico/resultado; ya no se muestra cuadro adicional.
 
 Si el motor nativo falla, se intenta respaldo con `7zz/7z/7za` o `unzip`. Los ajustes quedan en `registros/state/<hash>.json`.
 
