@@ -1,6 +1,6 @@
 use crate::cli::ui::{self, Tone};
 use crate::core::planner::{OutputMode, Plan};
-use crate::core::portable::fix_component;
+use crate::core::portable::{fix_component, is_zone_identifier};
 use crate::engines::detector::ArchiveFamily;
 use crate::engines::detector::detect_family;
 use crate::engines::{rar_engine::RarEngine, traits::Engine, zip_engine::ZipEngine};
@@ -59,6 +59,9 @@ pub fn run(plan: &Plan) -> Result<(), String> {
         if !p.is_file() {
             continue;
         }
+        if is_zone_identifier(&p) {
+            continue;
+        }
         let family = detect_family(&p);
         if matches!(family, ArchiveFamily::Unknown) {
             continue;
@@ -81,11 +84,12 @@ pub fn run(plan: &Plan) -> Result<(), String> {
 
     for path in archives {
         let path_str = path.display().to_string();
+        let (expected_dest, mut notices) = output_candidate(plan, &path)?;
         if already_done.contains(&path_str) {
             let recorded = prior_notices.get(&path_str);
             let pending_special =
                 needs_special(&path) && recorded.map_or(true, |notices| notices.is_empty());
-            if !pending_special {
+            if expected_dest.exists() && !pending_special {
                 skipped += 1;
                 if let Some(notices) = recorded {
                     if !notices.is_empty() {
@@ -96,9 +100,6 @@ pub fn run(plan: &Plan) -> Result<(), String> {
                 pb.set_message(format!("omitido {}", short_name(&path)));
                 continue;
             }
-            pb.suspend(|| {
-                eprintln!("↻ {} · reextraer para aplicar compatibilidad", path_str);
-            });
         }
         let family = detect_family(&path);
         let engine: Box<dyn Engine> = match family {
@@ -113,7 +114,7 @@ pub fn run(plan: &Plan) -> Result<(), String> {
                 }
             }
         };
-        let (dest, mut notices) = target_dir(plan, &path)?;
+        let (dest, _) = target_dir(plan, &path)?;
         let state_entry = match engine.extract(&path, &dest) {
             Ok(outcome) => {
                 notices.extend(outcome.notices);
@@ -218,29 +219,6 @@ fn print_summary(
     ));
     rows.push(("Tiempo", format!("{seconds:.1} s"), Tone::Normal));
     ui::print_rows("Resultado", &rows);
-
-    if compat.is_empty() {
-        return;
-    }
-
-    let mut lines = Vec::new();
-    for (index, (path, notices)) in compat.iter().take(3).enumerate() {
-        if index > 0 {
-            lines.push(String::new());
-        }
-        lines.push(short_name(Path::new(path)));
-        for notice in notices.iter().take(2) {
-            lines.push(format!("  {notice}"));
-        }
-        if notices.len() > 2 {
-            lines.push(format!("  +{} ajustes", notices.len() - 2));
-        }
-    }
-    if compat.len() > 3 {
-        lines.push(format!("+{} archivos más", compat.len() - 3));
-    }
-    lines.push("Solo estos archivos · no es el modo normal".to_string());
-    ui::print_notice("Compatibilidad especial", &lines);
 }
 
 fn needs_special(path: &Path) -> bool {
@@ -258,7 +236,10 @@ fn records_dir_for_plan(plan: &Plan) -> PathBuf {
     }
 }
 
-fn target_dir(plan: &Plan, archive_path: &Path) -> Result<(PathBuf, Vec<String>), String> {
+fn output_candidate(
+    plan: &Plan,
+    archive_path: &Path,
+) -> Result<(PathBuf, Vec<String>), String> {
     let rel = archive_path
         .strip_prefix(&plan.input)
         .map_err(|e| e.to_string())?;
@@ -281,7 +262,11 @@ fn target_dir(plan: &Plan, archive_path: &Path) -> Result<(PathBuf, Vec<String>)
             plan.output.join(parent).join(base_name)
         }
     };
-    // Simple collision avoidance
+    Ok((folder, notices))
+}
+
+fn target_dir(plan: &Plan, archive_path: &Path) -> Result<(PathBuf, Vec<String>), String> {
+    let (folder, notices) = output_candidate(plan, archive_path)?;
     let mut candidate = folder.clone();
     let mut i = 1;
     while candidate.exists() {

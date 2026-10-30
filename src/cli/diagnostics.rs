@@ -1,6 +1,6 @@
 use crate::cli::ui::{self, Tone};
 use crate::core::planner::Plan;
-use crate::core::portable::{NameFix, fix_component};
+use crate::core::portable::{is_zone_identifier, fix_component, NameFix};
 use crate::engines::detector::{ArchiveFamily, detect_family};
 use jwalk::WalkDir;
 use std::path::Path;
@@ -13,6 +13,9 @@ pub fn print_diagnostics(plan: &Plan) {
     for entry in WalkDir::new(&plan.input).into_iter().filter_map(Result::ok) {
         let p = entry.path();
         if !p.is_file() {
+            continue;
+        }
+        if is_zone_identifier(&p) {
             continue;
         }
         total += 1;
@@ -56,24 +59,6 @@ pub fn print_diagnostics(plan: &Plan) {
             ),
         ],
     );
-
-    if !special.is_empty() {
-        if special.len() <= 2 {
-            for (path, fix) in &special {
-                let name = Path::new(path)
-                    .file_name()
-                    .map(|n| n.to_string_lossy().to_string())
-                    .unwrap_or_else(|| path.clone());
-                eprintln!("  ⚠ {} · {} · solo este archivo", name, fix.reason());
-            }
-        } else {
-            eprintln!(
-                "  ⚠ {} archivos · ajuste especial solo en ellos",
-                special.len()
-            );
-        }
-        eprintln!();
-    }
 }
 
 fn folder_fix(path: &Path) -> Option<NameFix> {

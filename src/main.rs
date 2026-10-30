@@ -44,7 +44,7 @@ fn main() {
                 };
                 let plan = Plan::new(input, output, mode);
                 diagnostics::print_diagnostics(&plan);
-                if menus::confirm_extract() {
+                if args.yes || menus::confirm_extract() {
                     if let Err(e) = run(&plan) {
                         eprintln!("Error: {}", e);
                     }

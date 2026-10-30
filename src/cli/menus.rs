@@ -52,7 +52,7 @@ pub fn ask_input_output() -> (PathBuf, PathBuf) {
 }
 
 pub fn ask_mode() -> bool {
-    let items = &["A · Una carpeta", "B · Preservar estructura"];
+    let items = &["B · Preservar estructura", "A · Una carpeta"];
     let theme = menu_theme();
     let sel = Select::with_theme(&theme)
         .with_prompt("Modo")
@@ -60,12 +60,12 @@ pub fn ask_mode() -> bool {
         .default(0)
         .interact()
         .unwrap();
-    sel == 0
+    sel == 1
 }
 
 pub fn confirm_extract() -> bool {
     Confirm::with_theme(&menu_theme())
-        .with_prompt("Enter para extraer")
+        .with_prompt("Extraer")
         .default(true)
         .interact()
         .unwrap_or(false)

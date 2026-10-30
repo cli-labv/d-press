@@ -1,5 +1,5 @@
 use std::collections::BTreeSet;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum NameIssue {
@@ -146,6 +146,13 @@ pub fn fix_relative_path(raw: &str) -> Result<PathFix, String> {
         value,
         fixes,
     })
+}
+
+pub fn is_zone_identifier(path: &Path) -> bool {
+    path.file_name()
+        .and_then(|n| n.to_str())
+        .map(|n| n.ends_with(":Zone.Identifier"))
+        .unwrap_or(false)
 }
 
 fn is_reserved(name: &str) -> bool {
